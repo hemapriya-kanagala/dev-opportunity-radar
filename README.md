@@ -12,6 +12,52 @@ New editions are published weekly on DEV Community.
 
 ---
 
+## Latest Edition
+
+📍 **[Edition #4: Anthropic Fellows, $30K for Founders, and AWS She Builds](https://dev.to/devengers/dev-opportunity-radar-4-anthropic-fellows-30k-for-founders-and-aws-she-builds-2a6b)**
+
+---
+
+## Table of Contents
+
+* [What You'll Find Here](#what-youll-find-here)
+* [Series at a Glance](#series-at-a-glance)
+* [Editions](#editions)
+* [Community Finds](#community-finds)
+* [Suggest a Community Find](#suggest-a-community-find)
+* [Read the Series](#read-the-series)
+* [Copyright](#copyright)
+
+---
+
+## What You'll Find Here
+
+Topics featured in the series include:
+* Fellowships
+* Grants
+* Hackathons
+* Startup Programs
+* Research Opportunities
+* Scholarships
+* Learning Resources
+* Developer Communities
+* Conferences & Events
+* Technical Programs
+* Founder Opportunities
+  
+---
+
+## Series at a Glance
+
+| Metric                   | Value    |
+| ------------------------ | -------- |
+| Editions Published       | 4        |
+| Community Finds Featured | 3        |
+| Started                  | May 2026 |
+| Publishing Schedule      | Weekly   |
+
+---
+
 ## Editions
 
 | Edition            | Highlights                                                                      | Published | Status  |
