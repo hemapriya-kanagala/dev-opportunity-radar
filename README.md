@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.jpeg" alt="Dev Opportunity Radar" width="100%">
+</p>
+
 # Dev Opportunity Radar 
 
 Welcome to the archive for **Dev Opportunity Radar**.
