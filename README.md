@@ -28,7 +28,7 @@ New editions are published every Friday on DEV Community.
 
 ## Latest Edition
 
-> 📍 **Latest:** **[Edition #5: A Fully Funded Trip to AWS re:Invent, Google Cloud Career Launchpad, and a $1,000 Award]([https://dev.to/devengers/dev-opportunity-radar-4-anthropic-fellows-30k-for-founders-and-aws-she-builds-2a6b](https://dev.to/devengers/dev-opportunity-radar-5-a-fully-funded-trip-to-aws-reinvent-google-cloud-career-launchpad-and-3p6e))**
+> 📍 **Latest:** **[Edition #5: A Fully Funded Trip to AWS re:Invent, Google Cloud Career Launchpad, and a $1,000 Award](https://dev.to/devengers/dev-opportunity-radar-5-a-fully-funded-trip-to-aws-reinvent-google-cloud-career-launchpad-and-3p6e))**
 
 ---
 
@@ -63,10 +63,10 @@ Each edition is different, but topics featured in the series commonly include:
 
 | Metric                   | Value    |
 | ------------------------ | -------- |
-| Editions Published       | 4        |
-| Opportunities & Resources Shared       | 18        |
-| Community Finds Featured | 3        |
-| Contributors Credited | 3        |
+| Editions Published       | 5        |
+| Opportunities & Resources Shared       | 22        |
+| Community Finds Featured | 4        |
+| Contributors Credited | 4        |
 | Started                  | May 2026 |
 | Publishing Schedule      | Every Friday   |
 
