@@ -1,0 +1,6 @@
+{
+  "name": "Dev Opportunity Radar",
+  "description": "A curated resource helping developers discover grants, hackathons, fellowships, and other tech opportunities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
