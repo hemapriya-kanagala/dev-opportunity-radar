@@ -6,24 +6,117 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-warm-cream: #faf9f6;
-  --color-warm-soft: #f4f3ee;
-  --color-warm-border: #e6e4dc;
-  --color-charcoal-deep: #1c1b18;
-  --color-charcoal-medium: #42413d;
-  --color-charcoal-light: #706f69;
+  --color-warm-cream: var(--theme-bg-cream);
+  --color-warm-soft: var(--theme-bg-soft);
+  --color-warm-border: var(--theme-border);
+  --color-charcoal-deep: var(--theme-text-deep);
+  --color-charcoal-medium: var(--theme-text-medium);
+  --color-charcoal-light: var(--theme-text-light);
+}
+
+:root {
+  --theme-bg-cream: #faf9f6;
+  --theme-bg-soft: #f4f3ee;
+  --theme-border: #e6e4dc;
+  --theme-text-deep: #1c1b18;
+  --theme-text-medium: #42413d;
+  --theme-text-light: #706f69;
+}
+
+:root.dark {
+  --theme-bg-cream: #0c0c0b; /* Deep obsidian with warm soul */
+  --theme-bg-soft: #161514; /* Elevated surface card color */
+  --theme-border: #2c2a26; /* Soft warm border, not too bright but clean */
+  --theme-text-deep: #f5f4ef; /* Clean, warm off-white */
+  --theme-text-medium: #c2c0b5; /* Readable secondary text */
+  --theme-text-light: #807e74; /* Elegant tertiary text */
 }
 
 body {
-  background-color: #faf9f6; /* warm-cream */
-  color: #1c1b18; /* charcoal-deep */
+  background-color: var(--theme-bg-cream);
+  color: var(--theme-text-deep);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Custom focus ring for WCAG compliance */
 *:focus-visible {
-  outline: 2px solid #1c1b18;
+  outline: 2px solid var(--theme-text-deep);
   outline-offset: 2px;
+}
+
+/* Custom selection highlight matching the warm/dark design language */
+::selection {
+  background-color: var(--theme-border);
+  color: var(--theme-text-deep);
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--theme-bg-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-light);
+}
+
+/* Modern semantic overrides for beautiful light-on-dark alert / badge / tag states in Dark Mode */
+.dark .bg-emerald-50, 
+.dark .bg-emerald-50\/80,
+.dark .bg-emerald-50\/20,
+.dark .bg-emerald-50\/55,
+.dark .bg-emerald-50\/60 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+.dark .text-emerald-700,
+.dark .text-emerald-800 {
+  color: #34d399 !important;
+}
+.dark .border-emerald-200,
+.dark .border-emerald-200\/50,
+.dark .border-emerald-200\/60,
+.dark .border-emerald-100 {
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+.dark .text-indigo-600 {
+  color: #818cf8 !important;
+}
+.dark .bg-indigo-50,
+.dark .bg-indigo-50\/50,
+.dark .bg-indigo-50\/20 {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+}
+.dark .border-indigo-100,
+.dark .border-indigo-100\/50 {
+  border-color: rgba(99, 102, 241, 0.25) !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/20,
+.dark .bg-amber-50\/50,
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-amber-850,
+.dark .text-amber-900 {
+  color: #fbbf24 !important;
+}
+.dark .border-amber-200,
+.dark .border-amber-200\/50 {
+  border-color: rgba(245, 158, 11, 0.25) !important;
 }
 

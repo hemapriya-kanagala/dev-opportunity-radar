@@ -1,21 +1,53 @@
-import React, { useState, useEffect } from "react";
-import { Compass, Search, Menu, X, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Compass, Search, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
 
 interface HeaderProps {
   currentPath: string;
   onNavigate: (hash: string) => void;
   isAdminAuthorized?: boolean;
+  theme?: "light" | "dark";
+  onToggleTheme?: () => void;
 }
 
-export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAuthorized }: HeaderProps) {
+export function Header({
+  currentPath,
+  onNavigate,
+  isAdminAuthorized: _isAdminAuthorized,
+  theme = "light",
+  onToggleTheme
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [navDropdownOpen, setNavDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close menus on path changes or window resize
   useEffect(() => {
     setMobileMenuOpen(false);
     setNavDropdownOpen(false);
   }, [currentPath]);
+
+  // Click outside and Escape listener to close the dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setNavDropdownOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setNavDropdownOpen(false);
+      }
+    }
+
+    if (navDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [navDropdownOpen]);
 
   const navItems = [
     { label: "Home", hash: "#" },
@@ -69,7 +101,7 @@ export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAut
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {/* Explore Radar Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setNavDropdownOpen(!navDropdownOpen)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 focus-visible:outline-charcoal-deep ${
@@ -85,12 +117,7 @@ export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAut
               </button>
 
               {navDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setNavDropdownOpen(false)}
-                  ></div>
-                  <div className="absolute right-0 mt-2.5 w-[540px] rounded-2xl border border-warm-border bg-warm-cream p-5 shadow-lg z-20 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 mt-2.5 w-[540px] rounded-2xl border border-warm-border bg-warm-cream p-5 shadow-lg z-20 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="grid grid-cols-3 gap-6">
                       {/* Section 1: Radar Directory */}
                       <div className="space-y-2">
@@ -171,12 +198,11 @@ export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAut
                       </div>
                     </div>
                   </div>
-                </>
               )}
             </div>
           </nav>
 
-          {/* Search Button and Mobile Toggle */}
+          {/* Search Button, Theme Toggle, and Mobile Toggle */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => onNavigate("#search")}
@@ -189,6 +215,20 @@ export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAut
             >
               <Search className="w-4.5 h-4.5" />
             </button>
+
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="p-2 rounded-lg border border-warm-border text-charcoal-medium hover:text-charcoal-deep hover:bg-warm-soft transition-all duration-200 focus-visible:outline-charcoal-deep group"
+                aria-label={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              >
+                {theme === "light" ? (
+                  <Moon className="w-4.5 h-4.5 transition-transform duration-300 group-hover:rotate-12 text-charcoal-medium group-hover:text-charcoal-deep" />
+                ) : (
+                  <Sun className="w-4.5 h-4.5 transition-transform duration-300 group-hover:rotate-45 text-amber-500" />
+                )}
+              </button>
+            )}
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

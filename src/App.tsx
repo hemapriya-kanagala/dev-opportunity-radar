@@ -110,6 +110,33 @@ export default function App() {
   // Use a ref to store current history to prevent stale closure in event listener
   const navHistoryRef = React.useRef<string[]>([window.location.hash || "#"]);
 
+  // Light/Dark Theme State with system preferences support
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const saved = localStorage.getItem("dor_theme");
+      if (saved === "light" || saved === "dark") return saved;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("dor_theme", theme);
+    } catch {}
+    
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
   // Core App States (Favorites/Bookmarks and user-submitted data)
   const [bookmarks, setBookmarks] = useState<string[]>(() => {
     try {
@@ -190,6 +217,11 @@ export default function App() {
   const [oppSharedBy, setOppSharedBy] = useState("");
   const [oppFeaturedInEd, setOppFeaturedInEd] = useState<number | "">("");
 
+  // Sort, Filter, and Search states for Curator Console opportunities
+  const [consoleOppSort, setConsoleOppSort] = useState<"edition-desc" | "edition-asc" | "date-newest" | "title-asc">("edition-desc");
+  const [consoleOppFilterEdition, setConsoleOppFilterEdition] = useState<string>("all");
+  const [consoleOppSearch, setConsoleOppSearch] = useState<string>("");
+
   // Form states for Edition
   const [edNumber, setEdNumber] = useState<number | "">("");
   const [edDate, setEdDate] = useState("");
@@ -221,6 +253,53 @@ export default function App() {
     if (editions.length === 0) return null;
     return [...editions].sort((a, b) => b.number - a.number)[0];
   }, [editions]);
+
+  const filteredConsoleOpportunities = useMemo(() => {
+    let result = [...opportunities];
+
+    // 1. Search Filter
+    if (consoleOppSearch.trim()) {
+      const s = consoleOppSearch.toLowerCase();
+      result = result.filter(
+        (o) =>
+          o.title.toLowerCase().includes(s) ||
+          o.organization.toLowerCase().includes(s) ||
+          (o.description && o.description.toLowerCase().includes(s)) ||
+          (o.tags && o.tags.some((tag) => tag.toLowerCase().includes(s)))
+      );
+    }
+
+    // 2. Edition Filter
+    if (consoleOppFilterEdition === "none") {
+      result = result.filter((o) => o.featuredInEdition === undefined || o.featuredInEdition === null || String(o.featuredInEdition) === "");
+    } else if (consoleOppFilterEdition !== "all") {
+      result = result.filter((o) => String(o.featuredInEdition) === consoleOppFilterEdition);
+    }
+
+    // 3. Sort
+    result.sort((a, b) => {
+      if (consoleOppSort === "edition-desc") {
+        const edA = a.featuredInEdition ?? -1;
+        const edB = b.featuredInEdition ?? -1;
+        if (edB !== edA) return edB - edA;
+        return a.title.localeCompare(b.title);
+      } else if (consoleOppSort === "edition-asc") {
+        const edA = a.featuredInEdition ?? 999999;
+        const edB = b.featuredInEdition ?? 999999;
+        if (edA !== edB) return edA - edB;
+        return a.title.localeCompare(b.title);
+      } else if (consoleOppSort === "title-asc") {
+        return a.title.localeCompare(b.title);
+      } else {
+        // date-newest
+        const dateA = a.dateAdded || "";
+        const dateB = b.dateAdded || "";
+        return dateB.localeCompare(dateA);
+      }
+    });
+
+    return result;
+  }, [opportunities, consoleOppSearch, consoleOppFilterEdition, consoleOppSort]);
 
   const startEditOpp = (opp: Opportunity) => {
     setEditingOpp(opp);
@@ -339,20 +418,38 @@ export default function App() {
     localStorage.setItem("dor_user_finds", JSON.stringify(userFinds));
   }, [userFinds]);
 
-  // Sync core opportunities to LocalStorage
+  // Fetch live synchronized data from Firestore via backend APIs on mount
   useEffect(() => {
-    localStorage.setItem("dor_opportunities", JSON.stringify(opportunities));
-  }, [opportunities]);
-
-  // Sync core editions to LocalStorage
-  useEffect(() => {
-    localStorage.setItem("dor_editions", JSON.stringify(editions));
-  }, [editions]);
-
-  // Sync core statistics to LocalStorage
-  useEffect(() => {
-    localStorage.setItem("dor_statistics", JSON.stringify(stats));
-  }, [stats]);
+    let active = true;
+    async function loadLiveData() {
+      try {
+        const [oppsRes, edsRes, statsRes] = await Promise.all([
+          fetch("/api/opportunities"),
+          fetch("/api/editions"),
+          fetch("/api/statistics")
+        ]);
+        if (!active) return;
+        if (oppsRes.ok) {
+          const oppsData = await oppsRes.json();
+          setOpportunities(oppsData);
+        }
+        if (edsRes.ok) {
+          const edsData = await edsRes.json();
+          setEditions(edsData);
+        }
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+      } catch (err) {
+        console.error("Failed to load live synchronized data from Firestore server:", err);
+      }
+    }
+    loadLiveData();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Security Feature: Inactivity Auto-Lock (Locks session after 10 minutes of complete inactivity)
   useEffect(() => {
@@ -434,67 +531,172 @@ export default function App() {
     setToast({ message, type });
   };
 
-  // Double safety curation actions
-  const executeSafeAction = (type: string, payload: any) => {
+  // Helper to retrieve secure authentication headers from sessionStorage
+  const getAuthHeaders = () => {
+    try {
+      const pin = sessionStorage.getItem("dor_admin_pin") || "";
+      const email = sessionStorage.getItem("dor_admin_email") || "";
+      return {
+        "Content-Type": "application/json",
+        "x-admin-pin": pin,
+        "x-admin-email": email
+      };
+    } catch (err) {
+      return {
+        "Content-Type": "application/json",
+        "x-admin-pin": "",
+        "x-admin-email": ""
+      };
+    }
+  };
+
+  // Double safety curation actions backed by remote secure Firestore endpoints
+  const executeSafeAction = async (type: string, payload: any) => {
+    const headers = getAuthHeaders();
+
     switch (type) {
       case "save-opp": {
         const { updatedOpp, editingOppId, oppTitle } = payload;
-        if (editingOppId) {
-          setOpportunities((prev) =>
-            prev.map((o) => (o.id === editingOppId ? updatedOpp : o))
-          );
-          showToast(`Successfully updated opportunity "${oppTitle}"!`, "success");
-        } else {
-          setOpportunities((prev) => [updatedOpp, ...prev]);
-          showToast(`Successfully added new opportunity "${oppTitle}"!`, "success");
+        try {
+          const response = await fetch("/api/opportunities", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(updatedOpp)
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to save opportunity to database.", "warning");
+            return;
+          }
+
+          if (editingOppId) {
+            setOpportunities((prev) =>
+              prev.map((o) => (o.id === editingOppId ? updatedOpp : o))
+            );
+            showToast(`Successfully updated opportunity "${oppTitle}"!`, "success");
+          } else {
+            setOpportunities((prev) => [updatedOpp, ...prev]);
+            showToast(`Successfully added new opportunity "${oppTitle}"!`, "success");
+          }
+          resetOppForm();
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
         }
-        resetOppForm();
         break;
       }
       case "save-ed": {
         const { updatedEd, editingEdNumber, edNumber } = payload;
-        if (editingEdNumber !== undefined && editingEdNumber !== null && editingEdNumber !== "") {
-          setEditions((prev) =>
-            prev.map((ed) => (ed.number === editingEdNumber ? updatedEd : ed))
-          );
-          showToast(`Successfully updated Edition #${edNumber}!`, "success");
-        } else {
-          setEditions((prev) => [updatedEd, ...prev]);
-          showToast(`Successfully published Edition #${edNumber}!`, "success");
+        try {
+          const response = await fetch("/api/editions", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(updatedEd)
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to save edition to database.", "warning");
+            return;
+          }
+
+          if (editingEdNumber !== undefined && editingEdNumber !== null && editingEdNumber !== "") {
+            setEditions((prev) =>
+              prev.map((ed) => (ed.number === editingEdNumber ? updatedEd : ed))
+            );
+            showToast(`Successfully updated Edition #${edNumber}!`, "success");
+          } else {
+            setEditions((prev) => [updatedEd, ...prev]);
+            showToast(`Successfully published Edition #${edNumber}!`, "success");
+          }
+          resetEdForm();
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
         }
-        resetEdForm();
         break;
       }
       case "delete-opp": {
         const { oppId, oppTitle } = payload;
-        setOpportunities((prev) => prev.filter((o) => o.id !== oppId));
-        showToast(`Deleted opportunity "${oppTitle}"`, "info");
+        try {
+          const response = await fetch(`/api/opportunities/${oppId}`, {
+            method: "DELETE",
+            headers
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to delete opportunity from database.", "warning");
+            return;
+          }
+
+          setOpportunities((prev) => prev.filter((o) => o.id !== oppId));
+          showToast(`Deleted opportunity "${oppTitle}"`, "info");
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
+        }
         break;
       }
       case "delete-ed": {
         const { edNumber } = payload;
-        setEditions((prev) => prev.filter((e) => e.number !== edNumber));
-        showToast(`Deleted Edition #${edNumber}`, "info");
+        try {
+          const response = await fetch(`/api/editions/${edNumber}`, {
+            method: "DELETE",
+            headers
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to delete edition from database.", "warning");
+            return;
+          }
+
+          setEditions((prev) => prev.filter((e) => e.number !== edNumber));
+          showToast(`Deleted Edition #${edNumber}`, "info");
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
+        }
         break;
       }
       case "reset": {
-        localStorage.removeItem("dor_opportunities");
-        localStorage.removeItem("dor_editions");
-        localStorage.removeItem("dor_statistics");
-        setOpportunities(STATIC_OPPORTUNITIES);
-        setEditions(STATIC_EDITIONS);
-        setStats({
-          editionsCount: STATISTICS.editionsCount,
-          opportunitiesCount: STATISTICS.opportunitiesCount,
-          communityFindsCount: STATISTICS.communityFindsCount,
-          contributorsCount: STATISTICS.contributorsCount
-        });
-        showToast("All data successfully restored to factory defaults!", "success");
+        try {
+          const response = await fetch("/api/reset", {
+            method: "POST",
+            headers
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to reset database.", "warning");
+            return;
+          }
+
+          setOpportunities(STATIC_OPPORTUNITIES);
+          setEditions(STATIC_EDITIONS);
+          setStats({
+            editionsCount: STATISTICS.editionsCount,
+            opportunitiesCount: STATISTICS.opportunitiesCount,
+            communityFindsCount: STATISTICS.communityFindsCount,
+            contributorsCount: STATISTICS.contributorsCount
+          });
+          showToast("All data successfully restored to factory defaults!", "success");
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
+        }
         break;
       }
       case "save-stats": {
-        setStats(payload);
-        showToast("Platform statistics successfully updated!", "success");
+        try {
+          const response = await fetch("/api/statistics", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload)
+          });
+          const resData = await response.json();
+          if (!response.ok) {
+            showToast(resData.error || "Failed to save statistics to database.", "warning");
+            return;
+          }
+
+          setStats(payload);
+          showToast("Platform statistics successfully updated!", "success");
+        } catch (err) {
+          showToast("Network error: failed to communicate with secure database server.", "warning");
+        }
         break;
       }
     }
@@ -750,7 +952,13 @@ export default function App() {
       </a>
 
       {/* Header component */}
-      <Header currentPath={route.view} onNavigate={navigateTo} isAdminAuthorized={isAdminAuthorized} />
+      <Header
+        currentPath={route.view}
+        onNavigate={navigateTo}
+        isAdminAuthorized={isAdminAuthorized}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
 
       {/* Main Content Area */}
       <main id="main-content" className="flex-grow" tabIndex={-1}>
@@ -2255,7 +2463,7 @@ export default function App() {
                                 onClick={() => navigateTo(`#opportunity/${opp.id}`)}
                                 className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg border border-warm-border text-xs font-semibold text-charcoal-deep hover:bg-warm-soft hover:border-charcoal-deep/30 shrink-0 self-end sm:self-center transition-all"
                               >
-                                View Specs
+                                View Details
                                 <ArrowRight className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -3698,6 +3906,8 @@ export default function App() {
                         setIsAdminAuthorized(true);
                         try {
                           sessionStorage.setItem("dor_admin_authorized", "true");
+                          sessionStorage.setItem("dor_admin_pin", trimmedPin);
+                          sessionStorage.setItem("dor_admin_email", trimmedEmail);
                         } catch (err) {}
                         showToast("Authentication successful! Welcome back, Curator.", "success");
                         setEnteredPin("");
@@ -3783,6 +3993,8 @@ export default function App() {
                       setIsAdminAuthorized(false);
                       try {
                         sessionStorage.removeItem("dor_admin_authorized");
+                        sessionStorage.removeItem("dor_admin_pin");
+                        sessionStorage.removeItem("dor_admin_email");
                       } catch (err) {}
                       navigateTo("#");
                       showToast("Curation session securely closed.", "info");
@@ -4330,59 +4542,137 @@ export default function App() {
                 {/* Directory Table Grid for all opportunities */}
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h3 className="font-display font-bold text-lg text-charcoal-deep">Full Opportunities Database</h3>
+                    <h3 className="font-display font-bold text-lg text-charcoal-deep">Full Opportunities Database ({filteredConsoleOpportunities.length})</h3>
+                  </div>
+
+                  {/* Curator Interactive Controls Bar */}
+                  <div className="bg-warm-cream border border-warm-border rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm shadow-sm">
+                    {/* Search Field */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-charcoal-medium block">Search Directory</label>
+                      <input
+                        type="text"
+                        value={consoleOppSearch}
+                        onChange={(e) => setConsoleOppSearch(e.target.value)}
+                        placeholder="Search by title, organization, tags..."
+                        className="w-full px-3 py-1.5 rounded-lg border border-warm-border bg-warm-cream focus:border-charcoal-deep focus:outline-none text-xs"
+                      />
+                    </div>
+
+                    {/* Filter by Edition */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-charcoal-medium block">Filter by Weekly Edition</label>
+                      <select
+                        value={consoleOppFilterEdition}
+                        onChange={(e) => setConsoleOppFilterEdition(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-warm-border bg-warm-cream focus:border-charcoal-deep focus:outline-none text-xs"
+                      >
+                        <option value="all">All Editions</option>
+                        <option value="none">Not Featured (Unpublished / Draft)</option>
+                        {Array.from(new Set(opportunities.map(o => o.featuredInEdition).filter(Boolean)))
+                          .sort((a, b) => Number(b) - Number(a))
+                          .map(edNum => (
+                            <option key={edNum} value={String(edNum)}>Edition #{edNum}</option>
+                          ))
+                        }
+                      </select>
+                    </div>
+
+                    {/* Sort Options */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-charcoal-medium block">Sort Opportunities By</label>
+                        {(consoleOppSearch || consoleOppFilterEdition !== "all" || consoleOppSort !== "edition-desc") && (
+                          <button
+                            onClick={() => {
+                              setConsoleOppSearch("");
+                              setConsoleOppFilterEdition("all");
+                              setConsoleOppSort("edition-desc");
+                            }}
+                            className="text-[10px] text-red-600 hover:underline font-medium"
+                          >
+                            Reset Filters
+                          </button>
+                        )}
+                      </div>
+                      <select
+                        value={consoleOppSort}
+                        onChange={(e) => setConsoleOppSort(e.target.value as any)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-warm-border bg-warm-cream focus:border-charcoal-deep focus:outline-none text-xs"
+                      >
+                        <option value="edition-desc">Edition Number (Newest First)</option>
+                        <option value="edition-asc">Edition Number (Oldest First)</option>
+                        <option value="date-newest">Date Added (Newest First)</option>
+                        <option value="title-asc">Title (A-Z)</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="rounded-xl border border-warm-border bg-warm-cream overflow-hidden">
                     <div className="grid grid-cols-1 divide-y divide-warm-border">
-                      {opportunities.map((opp) => (
-                        <div key={opp.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-warm-soft/20 transition-all">
-                          <div className="space-y-1.5 max-w-xl">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-[10px] font-mono text-charcoal-light uppercase tracking-wider">{opp.organization}</span>
-                              <span className="text-[10px] font-mono text-charcoal-light uppercase px-1.5 py-0.5 rounded bg-warm-soft border border-warm-border">{opp.category}</span>
-                              {opp.status && (
-                                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
-                                  opp.status.toLowerCase().includes("closed")
-                                    ? "bg-rose-50 text-rose-700 border-rose-200"
-                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                }`}>
-                                  {opp.status}
-                                </span>
-                              )}
-                            </div>
-                            <h4 className="font-display font-semibold text-charcoal-deep text-base">{opp.title}</h4>
-                            <p className="text-xs text-charcoal-medium line-clamp-2">{opp.description}</p>
-                            <p className="text-[10px] font-mono text-charcoal-light">Deadline: <span className="font-bold text-charcoal-medium">{opp.deadline}</span></p>
-                          </div>
-
-                          <div className="flex gap-2 shrink-0">
-                            <button
-                              onClick={() => startEditOpp(opp)}
-                              className="px-3 py-1.5 rounded border border-warm-border text-xs text-charcoal-medium hover:text-charcoal-deep hover:bg-warm-soft transition-all flex items-center gap-1"
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                const deleteAction = () => {
-                                  executeSafeAction("delete-opp", { oppId: opp.id, oppTitle: opp.title });
-                                };
-
-                                handleRequestAction(
-                                  "delete-opp",
-                                  { oppId: opp.id, oppTitle: opp.title },
-                                  `You are about to permanently delete the Opportunity "${opp.title}". This action is irreversible.`,
-                                  deleteAction
-                                );
-                              }}
-                              className="px-3 py-1.5 rounded border border-red-200 text-xs text-red-600 hover:bg-red-50 transition-all flex items-center gap-1"
-                            >
-                              🗑️ Delete
-                            </button>
-                          </div>
+                      {filteredConsoleOpportunities.length === 0 ? (
+                        <div className="p-8 text-center text-charcoal-medium italic">
+                          No opportunities matched your search, filter, or sort criteria.
                         </div>
-                      ))}
+                      ) : (
+                        filteredConsoleOpportunities.map((opp) => (
+                          <div key={opp.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-warm-soft/20 transition-all">
+                            <div className="space-y-1.5 max-w-xl">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] font-mono text-charcoal-light uppercase tracking-wider">{opp.organization}</span>
+                                <span className="text-[10px] font-mono text-charcoal-light uppercase px-1.5 py-0.5 rounded bg-warm-soft border border-warm-border">{opp.category}</span>
+                                {opp.status && (
+                                  <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
+                                    opp.status.toLowerCase().includes("closed")
+                                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  }`}>
+                                    {opp.status}
+                                  </span>
+                                )}
+                                {opp.featuredInEdition !== undefined && opp.featuredInEdition !== null && opp.featuredInEdition !== "" ? (
+                                  <span className="text-[10px] font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                    Edition #{opp.featuredInEdition}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-mono font-medium text-charcoal-light bg-warm-soft border border-dashed border-warm-border px-1.5 py-0.5 rounded">
+                                    Unassigned / Draft
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-display font-semibold text-charcoal-deep text-base">{opp.title}</h4>
+                              <p className="text-xs text-charcoal-medium line-clamp-2">{opp.description}</p>
+                              <p className="text-[10px] font-mono text-charcoal-light">Deadline: <span className="font-bold text-charcoal-medium">{opp.deadline}</span></p>
+                            </div>
+
+                            <div className="flex gap-2 shrink-0">
+                              <button
+                                onClick={() => startEditOpp(opp)}
+                                className="px-3 py-1.5 rounded border border-warm-border text-xs text-charcoal-medium hover:text-charcoal-deep hover:bg-warm-soft transition-all flex items-center gap-1"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const deleteAction = () => {
+                                    executeSafeAction("delete-opp", { oppId: opp.id, oppTitle: opp.title });
+                                  };
+
+                                  handleRequestAction(
+                                    "delete-opp",
+                                    { oppId: opp.id, oppTitle: opp.title },
+                                    `You are about to permanently delete the Opportunity "${opp.title}". This action is irreversible.`,
+                                    deleteAction
+                                  );
+                                }}
+                                className="px-3 py-1.5 rounded border border-red-200 text-xs text-red-600 hover:bg-red-50 transition-all flex items-center gap-1"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -4938,7 +5228,11 @@ export default function App() {
                   <strong>Full Keyboard Navigation:</strong> All links, buttons, form inputs, and custom dropdowns are fully navigable using the Tab key, with clear visible focus rings.
                 </li>
                 <li>
-                  <strong>High Contrast:</strong> Colors are based on a high-contrast warm cream canvas (#faf9f6) and deep charcoal grey text (#1c1b18) to ensure high readability with zero eye fatigue.
+                  <strong>High Contrast:</strong> {theme === "dark" ? (
+                    <span>Colors are based on a premium obsidian-charcoal canvas (#0c0c0b) and warm off-white text (#f5f4ef) to ensure high readability with zero eye fatigue.</span>
+                  ) : (
+                    <span>Colors are based on a high-contrast warm cream canvas (#faf9f6) and deep charcoal grey text (#1c1b18) to ensure high readability with zero eye fatigue.</span>
+                  )}
                 </li>
                 <li>
                   <strong>Semantic Markup:</strong> Clear heading levels (H1, H2, H3), lists, main land-marker regions, and button elements allow screen readers to parse structures naturally.

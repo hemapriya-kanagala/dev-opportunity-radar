@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Opportunity": {
+      "title": "Opportunity",
+      "description": "Represents a curated developer funding or fellowship opportunity.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "organization": { "type": "string" },
+        "description": { "type": "string" },
+        "whyFeatured": { "type": "string" },
+        "deadline": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "featuredInEdition": { "type": "number" },
+        "officialWebsite": { "type": "string" },
+        "whoItsFor": { "type": "string" },
+        "quickFacts": { "type": "string" },
+        "status": { "type": "string" },
+        "editionSectionLink": { "type": "string" }
+      },
+      "required": ["id", "title", "organization", "description", "category", "tags"]
+    },
+    "Edition": {
+      "title": "Edition",
+      "description": "Represents a newsletter weekly edition.",
+      "type": "object",
+      "properties": {
+        "number": { "type": "number" },
+        "date": { "type": "string" },
+        "introduction": { "type": "string" },
+        "highlights": { "type": "string" },
+        "closing": { "type": "string" },
+        "devToLink": { "type": "string" }
+      },
+      "required": ["number", "date", "introduction"]
+    },
+    "Statistics": {
+      "title": "Statistics",
+      "description": "Platform-wide curated counts.",
+      "type": "object",
+      "properties": {
+        "editionsCount": { "type": "number" },
+        "opportunitiesCount": { "type": "number" },
+        "communityFindsCount": { "type": "number" },
+        "contributorsCount": { "type": "number" }
+      },
+      "required": ["editionsCount", "opportunitiesCount", "communityFindsCount", "contributorsCount"]
+    }
+  },
+  "firestore": {
+    "opportunities": {
+      "schema": "Opportunity",
+      "description": "Collection of all curated opportunities."
+    },
+    "editions": {
+      "schema": "Edition",
+      "description": "Collection of all newsletter editions."
+    },
+    "statistics": {
+      "schema": "Statistics",
+      "description": "Global statistics document."
+    }
+  }
+}

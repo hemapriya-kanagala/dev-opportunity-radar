@@ -1,123 +1,164 @@
-<p align="center">
-  <img src="banner.jpeg" alt="Dev Opportunity Radar" width="100%">
-</p>
+# Dev Opportunity Radar
 
-# Dev Opportunity Radar Website
-
-> **Helping people discover opportunities they otherwise might have missed.**
-
-The **Dev Opportunity Radar** website is the home of the project.
-
-Every Friday, I publish a new edition of **Dev Opportunity Radar** on DEV Community, where I share grants, fellowships, hackathons, startup programs, learning resources, open source initiatives, communities, and other opportunities that I think deserve more attention.
-
-As the series continued to grow, I realized it was becoming harder for readers to find opportunities from previous editions. Someone might remember a fellowship but not the edition it appeared in. Someone else might only be interested in hackathons, while another person wanted to browse learning resources.
-
-I wanted to make that experience easier.
-
-That's why I built this website.
-
-It brings every edition together in one place and makes it easier to browse opportunities, search previous editions, discover Community Finds, celebrate Reader Updates, and explore everything the project has grown into.
-
-One thing that's important to me is this:
-
-> **This website is not replacing the weekly DEV editions.**
-
-Those editions are still the heart of Dev Opportunity Radar and will continue every Friday.
-
-The website simply gives them a home that's easier to search, browse, and revisit as the project continues to grow.
+Dev Opportunity Radar is a highly polished, curated dashboard designed to help developers discover grants, hackathons, fellowships, and other technical or financial opportunities. The platform acts as a curated newsletter and resource directory, complete with rich filtering, community-driven submissions, and a secure administration area (Creator Console).
 
 ---
 
-## Why this repository exists
+## Project Overview
 
-This repository contains the source code for the website.
-
-While the website itself is designed for readers, I also wanted the code to be public so anyone interested can see how it's built, report issues, suggest improvements, or simply follow along as the project evolves.
-
-Like the series itself, I hope this repository keeps improving over time.
+Built as a modern full-stack web application, Dev Opportunity Radar bridges the gap between opportunities and developers. It features a responsive grid interface allowing users to explore opportunities by edition, category, or direct keyword search. It also features a "Community Finds" area where readers can recommend resources, and a private "Creator Console" where administrators can manage entries securely.
 
 ---
 
-## Features
+## Key Features
 
-The website currently includes:
-
-- Home
-- Start Here
-- Search
-- Browse Opportunities
-- Weekly Editions
-- Community Finds
-- Reader Updates
-- About
-- My Philosophy
-- FAQ
-- Contact
-
-The goal isn't to add as many features as possible.
-
-The goal is to make discovering opportunities simple, welcoming, and enjoyable.
+- **Categorized Directory**: Explore curated developer opportunities structured by categories (e.g., *Funding*, *Hackathons*, *Learning*, *AI*).
+- **Edition-Based Archiving**: Browse through newsletter-style historical editions highlighting specific curated clusters.
+- **Universal Search & Filtering**: Fast, responsive keyword searching across titles, descriptions, organizations, and tags, with dynamic tag-filtering.
+- **Community Recommendations**: Allows readers to submit resource finds directly (persisted locally on the client's device as a fallback).
+- **Secure Creator Console (Admin)**: Protected management dashboard accessible via administrative credentials.
+- **Advanced Hardening & Protection**:
+  - **Server-Authoritative Authentication**: Login verification is executed entirely on the server-side to prevent bypasses.
+  - **Rate Limiting & Lockouts**: Automatically locks out IP addresses after five failed access attempts to mitigate brute-force attempts.
+  - **Timing-Safe Credentials Matching**: Uses HMAC hashes combined with cryptographic constant-time comparison to prevent side-channel timing analysis.
+  - **Strict Content Security Policy (CSP)**: Robust, defense-in-depth security headers, specifically configuring safe iframe nesting to support embeddings on platforms like **DEV.to** while blocking Clickjacking attacks on unauthorized domains.
 
 ---
 
-## Accessibility
+## Tech Stack
 
-Accessibility wasn't an afterthought while building this website.
-
-From the beginning, I wanted it to be something that works well for as many people as possible. Every page was designed with readability, responsiveness, keyboard navigation, clear typography, and thoughtful interactions in mind.
-
-There's always room to improve, so if you notice something that could make the experience better, I'd genuinely love to hear about it.
-
----
-
-## Development Notes
-
-Since this repository is public, I also wanted to be transparent about how it was built.
-
-I found the DEV Weekend Challenge on its very last day. By the time I started, I knew there probably wasn't enough time to build everything before the submission deadline. Rather than putting the idea off yet again, I decided to use the challenge as the push to finally build the website I'd been planning for weeks.
-
-Because time was limited, I used **Google AI Studio** to help develop the website and speed up implementation. I also used AI to proofread and improve some of the writing throughout the site, since English isn't my first language and I occasionally rely on it to help me express my ideas more clearly.
-
-That said, the biggest part of this project wasn't generating code. Most of my time went into thinking about the experience I wanted to create: how opportunities should be organized, how someone new would understand the project within a few seconds, how the website could continue to scale as more editions are published, and how to make it accessible, welcoming, and easy to use.
-
-AI helped me build faster, but every page, feature, piece of content, and design decision went through multiple rounds of refinement before becoming what you see today.
-
-I believe being transparent about how I build is important, so I wanted to include that here.
+- **Frontend Framework**: [React 19](https://react.dev/) + [Vite 6](https://vite.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Animations**: [Motion](https://motion.dev/) (layout animations and dynamic component transitions)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Backend Framework**: [Express 4](https://expressjs.com/) (Node.js server acting as static host and API proxy)
+- **Development Tools**: [tsx](https://github.com/privatenumber/tsx) (executes TypeScript backend server natively in development), [esbuild](https://esbuild.github.io/) (bundles/compiles the server file into high-performance CommonJS for production)
 
 ---
 
-## Feedback
+## Project Structure
 
-This is still the first version of the website.
-
-If you find a bug, notice something confusing, have an accessibility suggestion, or think of a feature that would genuinely improve the experience, please feel free to open an issue or start a discussion.
-
-Some of the best improvements to Dev Opportunity Radar have come from the community, and I'd love for the website to grow the same way.
-
----
-
-## Thank You
-
-This website may have been built by one person, but it certainly doesn't feel like a one-person project.
-
-Every reader who has shared an opportunity, suggested a resource, pointed out a mistake, celebrated someone else's success, or simply taken the time to read an edition has helped shape what Dev Opportunity Radar has become.
-
-Without that support, this website probably wouldn't exist.
-
-So, thank you.
-
-I hope it makes discovering opportunities a little easier.
-
----
-
-## Links
-
-🌐 **Website:** https://devopportunityradar.ai.studio
-
-📰 **DEV Series:** https://dev.to/hemapriya_kanagala
-
-💼 **LinkedIn:** https://www.linkedin.com/in/hemapriya-kanagala/
+```
+.
+├── server.ts              # Custom Express server (rate limiting, secure API, CSP, static file serving)
+├── vite.config.ts         # Vite configuration & build setup
+├── package.json           # Application dependencies and build scripts
+├── metadata.json          # Platform metadata (permissions, app name, description)
+├── tsconfig.json          # TypeScript configuration
+├── src/
+│   ├── main.tsx           # Client entry point
+│   ├── App.tsx            # Primary application component & routing logic
+│   ├── index.css          # Global Tailwind CSS imports & theme configurations
+│   ├── data.ts            # Curated local dataset (Opportunities, FAQs, Editions, Categories)
+│   ├── types.ts           # Shared TypeScript interfaces (Opportunity, Edition, CommunityFind)
+│   └── components/        # Reusable user-interface components
+│       ├── Header.tsx     # Responsive main navigation bar
+│       ├── Footer.tsx     # Informational footer
+│       └── Notification.tsx # Toast notification module
+└── dist/                  # Compiled output (generated during build phase)
+```
 
 ---
 
-Made with ❤️ by **Hemapriya Kanagala**
+## Prerequisites
+
+- **Node.js**: Version 18.x or later is recommended.
+- **npm** (or yarn/pnpm package manager).
+
+---
+
+## Installation
+
+1. Clone or download the repository to your environment.
+2. Navigate to the project root and install dependencies:
+   ```bash
+   npm install
+   ```
+
+---
+
+## Environment Variables
+
+Sensitive credentials are kept server-side and should be defined in a `.env` file during development, or populated via environment variables in production. 
+
+A `.env.example` file is included in the repository containing only descriptions and placeholders. **Do not commit actual secrets to the repository.**
+
+- `ADMIN_PIN`: The secure passcode to access the Creator Console (server-only). Fallback value is `1707`.
+- `ADMIN_EMAIL`: The secure registered email address authorized to log in. Fallback value is `hemapriyakanagala@gmail.com`.
+- `APP_URL`: The fully qualified URL of your deployed application (used for references).
+- `NODE_ENV`: Set to `"production"` in cloud deployments to optimize build parameters and activate production-grade static file serving.
+
+---
+
+## Running the Project Locally
+
+To boot up the application in local development mode:
+```bash
+npm run dev
+```
+This script runs the custom Express server inside `server.ts` using `tsx`. It integrates the Vite middleware to serve the React source files, support live asset compilation, and proxy client-side calls to `/api/*` endpoints under a single port (`3000`).
+
+---
+
+## Building for Production
+
+To compile both the frontend client and backend server for highly-optimized production deployment:
+```bash
+npm run build
+```
+This dual-stage build script:
+1. Compiles the frontend assets via `vite build`, writing optimized static files inside `dist/`.
+2. Packages the server-side `server.ts` code into a single, bundled, self-contained CommonJS file (`dist/server.cjs`) using `esbuild`. This bypasses module resolution overhead and enhances runtime start speeds in containerized environments.
+
+To run the compiled production bundle locally:
+```bash
+npm start
+```
+
+---
+
+## Deployment
+
+The application is fully compatible with containerized hosting platforms such as **Google Cloud Run**. 
+- It binds securely to port `3000` on host `0.0.0.0` (required for container ingress routing).
+- In production (`NODE_ENV=production`), the custom Express backend serves compiled assets directly from the `dist/` directory, while protecting `/api/*` endpoints from external interception.
+
+---
+
+## Security Overview
+
+The platform implements an absolute separation of concerns between public frontend resources and administrative administrative capabilities:
+
+- **Server-Authoritative Authentication**: All authentication tasks are performed on the Express backend (`/api/verify-admin`). No secrets are ever exposed in Vite bundles, browser memory, local storage, cookies, network payloads, or client logs.
+- **Timing-Safe Passcode Comparison**: Direct comparison of strings can leak match length or validity through character-by-character timing variations. The application routes passwords through HMAC SHA-256 digests and employs `crypto.timingSafeEqual` to verify keys in constant-time.
+- **Brute-Force & DoS Safeguards**: 
+  - Restricts payload parsing size strictly to `5kb` to prevent resource exhaustion attacks.
+  - Automatically isolates and locks out IP addresses for 15 minutes after 5 consecutive incorrect credentials entries.
+- **Security Headers & Clickjacking Prevention**:
+  - Sets `X-Content-Type-Options: nosniff` and a clean `Referrer-Policy`.
+  - Configures a strict `Content-Security-Policy` with `frame-ancestors` restricted exclusively to authorized environments. This allows embedding directly into **DEV.to** (via `https://dev.to` and `https://*.dev.to`) and **Google AI Studio** preview screens, but stops clickjacking attacks on arbitrary malicious sites.
+
+---
+
+## Configuration Notes
+
+- **Port Mapping**: The application port is hardcoded to `3000`. Do not override this port, as the reverse proxy container routing relies on port `3000` exclusively.
+
+---
+
+## Known Limitations
+
+- **Transient State Fallback**: Since no persistent external SQL database or cloud database integration (like Firestore) is currently mapped for community recommended items or reader story updates, user-generated submissions are saved in standard client-side `localStorage`. Consequently, submitted finds are only visible to the user who entered them and will be cleared if browser caches are wiped.
+
+---
+
+## Future Improvements
+
+- **Durable Database Integration**: Add a Firebase Firestore or Cloud SQL database layer to persist reader-submitted "Community Finds" and curator-entered opportunities in a shared, multi-user database.
+- **Session Auth Tokens**: Transition the simple validation state into temporary session-based tokens (such as secure, HTTP-only, SameSite cookies) to persist Creator Console state without client state flags.
+
+---
+
+## License
+
+No license has been specified for this project. All rights reserved by the original author.
