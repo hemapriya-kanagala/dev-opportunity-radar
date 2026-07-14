@@ -1,29 +1,94 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  
+
   --color-warm-cream: #faf9f6;
   --color-warm-soft: #f4f3ee;
   --color-warm-border: #e6e4dc;
   --color-charcoal-deep: #1c1b18;
   --color-charcoal-medium: #42413d;
   --color-charcoal-light: #706f69;
+
+  /* Stays red in both themes so white text on it is always readable. */
+  --color-danger-solid: oklch(50.5% 0.213 27.518);
+  --color-danger-solid-hover: oklch(44.4% 0.177 26.899);
+}
+
+html {
+  color-scheme: light;
+}
+
+/*
+ * Dark theme. Every Tailwind v4 utility resolves its color through a CSS
+ * variable (`.bg-warm-cream { background-color: var(--color-warm-cream) }`),
+ * so redefining the variables here re-themes the whole app without touching
+ * any class names. Accent scales are inverted: the tint shades (50-200) that
+ * back status chips become deep, and the shades used as text on them (600-900)
+ * become light. The 500s are left alone -- they are only used for solid status
+ * dots and /30 borders, which read fine on either canvas.
+ */
+html.dark {
+  color-scheme: dark;
+
+  --color-warm-cream: #171613;
+  --color-warm-soft: #22211d;
+  --color-warm-border: #33322c;
+  --color-charcoal-deep: #f5f4f0;
+  --color-charcoal-medium: #b9b7ae;
+  --color-charcoal-light: #8b8981;
+
+  --color-red-50: oklch(26% 0.06 27);
+  --color-red-100: oklch(31% 0.07 27);
+  --color-red-200: oklch(41% 0.09 27);
+  --color-red-600: oklch(72% 0.16 27);
+  --color-red-700: oklch(78% 0.13 27);
+  --color-red-800: oklch(84% 0.10 27);
+
+  --color-rose-50: oklch(26% 0.06 15);
+  --color-rose-100: oklch(31% 0.07 15);
+  --color-rose-200: oklch(41% 0.09 15);
+  --color-rose-700: oklch(78% 0.13 15);
+  --color-rose-800: oklch(84% 0.10 15);
+
+  --color-emerald-50: oklch(26% 0.05 160);
+  --color-emerald-100: oklch(31% 0.06 160);
+  --color-emerald-200: oklch(41% 0.08 160);
+  --color-emerald-700: oklch(80% 0.14 160);
+  --color-emerald-800: oklch(86% 0.11 160);
+
+  --color-amber-50: oklch(27% 0.05 78);
+  --color-amber-100: oklch(32% 0.06 78);
+  --color-amber-200: oklch(42% 0.08 78);
+  --color-amber-600: oklch(78% 0.14 78);
+  --color-amber-700: oklch(83% 0.12 78);
+  --color-amber-800: oklch(87% 0.10 78);
+  --color-amber-900: oklch(90% 0.08 78);
+
+  --color-indigo-50: oklch(27% 0.06 275);
+  --color-indigo-100: oklch(33% 0.07 275);
+  --color-indigo-600: oklch(76% 0.13 275);
+
+  --color-sky-100: oklch(31% 0.06 235);
+  --color-sky-200: oklch(41% 0.08 235);
+  --color-sky-800: oklch(85% 0.11 235);
 }
 
 body {
-  background-color: #faf9f6; /* warm-cream */
-  color: #1c1b18; /* charcoal-deep */
+  background-color: var(--color-warm-cream);
+  color: var(--color-charcoal-deep);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 /* Custom focus ring for WCAG compliance */
 *:focus-visible {
-  outline: 2px solid #1c1b18;
+  outline: 2px solid var(--color-charcoal-deep);
   outline-offset: 2px;
 }
-

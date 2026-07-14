@@ -10,6 +10,7 @@ import {
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Toast } from "./components/Notification";
+import { useTheme } from "./hooks/useTheme";
 import {
   OPPORTUNITIES as STATIC_OPPORTUNITIES, EDITIONS as STATIC_EDITIONS, COMMUNITY_FINDS, FAQS, PHILOSOPHY, STATISTICS, CATEGORIES, FAQ_TLDR, FAQ_CLOSING, ABOUT_CONTENT, CONTACT_CONTENT
 } from "./data";
@@ -104,6 +105,9 @@ function getOpportunityDeadlineStatus(opp: Opportunity): "Closed" | "Rolling/Ong
 }
 
 export default function App() {
+  // Light/dark theme (follows the OS until the reader picks one)
+  const { theme, toggleTheme } = useTheme();
+
   // Navigation State (using URL Hash)
   const [hash, setHash] = useState(window.location.hash || "#");
   
@@ -750,7 +754,7 @@ export default function App() {
       </a>
 
       {/* Header component */}
-      <Header currentPath={route.view} onNavigate={navigateTo} isAdminAuthorized={isAdminAuthorized} />
+      <Header currentPath={route.view} onNavigate={navigateTo} theme={theme} onToggleTheme={toggleTheme} isAdminAuthorized={isAdminAuthorized} />
 
       {/* Main Content Area */}
       <main id="main-content" className="flex-grow" tabIndex={-1}>
@@ -4637,11 +4641,11 @@ export default function App() {
                     iconElement = <MessageSquare className="w-4 h-4" />;
                     cardHref = "https://dev.to/hemapriya_kanagala";
                   } else if (isLinkedIn) {
-                    iconBg = "bg-sky-100 text-sky-850 border-sky-200 shadow-xs";
+                    iconBg = "bg-sky-100 text-sky-800 border-sky-200 shadow-xs";
                     iconElement = <Linkedin className="w-4 h-4" />;
                     cardHref = "https://www.linkedin.com/in/hemapriya-kanagala/";
                   } else if (isEmail) {
-                    iconBg = "bg-amber-100 text-amber-850 border-amber-200 shadow-xs";
+                    iconBg = "bg-amber-100 text-amber-800 border-amber-200 shadow-xs";
                     iconElement = <Mail className="w-4 h-4" />;
                     cardHref = "mailto:hemapriyakanagala@gmail.com";
                   }
@@ -4941,6 +4945,9 @@ export default function App() {
                   <strong>High Contrast:</strong> Colors are based on a high-contrast warm cream canvas (#faf9f6) and deep charcoal grey text (#1c1b18) to ensure high readability with zero eye fatigue.
                 </li>
                 <li>
+                  <strong>Light &amp; Dark Themes:</strong> A theme switcher in the navigation bar toggles between the warm light canvas and a warm dark one, both meeting WCAG AA contrast. The site follows your device's appearance setting until you choose otherwise, and remembers your choice.
+                </li>
+                <li>
                   <strong>Semantic Markup:</strong> Clear heading levels (H1, H2, H3), lists, main land-marker regions, and button elements allow screen readers to parse structures naturally.
                 </li>
                 <li>
@@ -4990,7 +4997,7 @@ export default function App() {
                   <strong>No Data Sale:</strong> I do not sell, rent, trade, or distribute your email addresses, submission names, or stories to any marketing agencies or third-party systems.
                 </li>
                 <li>
-                  <strong>Local Storage Only:</strong> Your bookmarked list and draft form submissions are kept entirely on your own local device using standard browser cache (`localStorage`). This data never leaves your device unless you actively submit a form.
+                  <strong>Local Storage Only:</strong> Your bookmarked list, theme preference, and draft form submissions are kept entirely on your own local device using standard browser cache (`localStorage`). This data never leaves your device unless you actively submit a form.
                 </li>
                 <li>
                   <strong>Humble Contact Delivery:</strong> Form submissions and email details are exclusively used to read, reply, and help you with your direct queries.
@@ -5110,7 +5117,7 @@ export default function App() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-red-700 text-warm-cream text-xs font-semibold hover:bg-red-800 transition-all shadow-xs animate-pulse"
+                  className="flex-1 py-2.5 rounded-xl bg-danger-solid text-white text-xs font-semibold hover:bg-danger-solid-hover transition-all shadow-xs animate-pulse"
                 >
                   Execute Live Update
                 </button>

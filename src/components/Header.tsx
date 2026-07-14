@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Compass, Search, Menu, X, ChevronDown } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import type { Theme } from "../hooks/useTheme";
 
 interface HeaderProps {
   currentPath: string;
   onNavigate: (hash: string) => void;
+  theme: Theme;
+  onToggleTheme: () => void;
   isAdminAuthorized?: boolean;
 }
 
-export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAuthorized }: HeaderProps) {
+export function Header({ currentPath, onNavigate, theme, onToggleTheme, isAdminAuthorized: _isAdminAuthorized }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [navDropdownOpen, setNavDropdownOpen] = useState(false);
 
@@ -176,8 +180,10 @@ export function Header({ currentPath, onNavigate, isAdminAuthorized: _isAdminAut
             </div>
           </nav>
 
-          {/* Search Button and Mobile Toggle */}
+          {/* Theme, Search Button and Mobile Toggle */}
           <div className="flex items-center gap-2">
+            <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
+
             <button
               onClick={() => onNavigate("#search")}
               className={`p-2 rounded-lg border transition-all focus-visible:outline-charcoal-deep ${
