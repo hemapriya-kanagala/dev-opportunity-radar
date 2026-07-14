@@ -70,6 +70,22 @@ There's always room to improve, so if you notice something that could make the e
 
 ---
 
+## Development Notes
+
+Since this repository is public, I also wanted to be transparent about how it was built.
+
+I found the DEV Weekend Challenge on its very last day. By the time I started, I knew there probably wasn't enough time to build everything before the submission deadline. Rather than putting the idea off yet again, I decided to use the challenge as the push to finally build the website I'd been planning for weeks.
+
+Because time was limited, I used **Google AI Studio** to help develop the website and speed up implementation. I also used AI to proofread and improve some of the writing throughout the site, since English isn't my first language and I occasionally rely on it to help me express my ideas more clearly.
+
+That said, the biggest part of this project wasn't generating code. Most of my time went into thinking about the experience I wanted to create: how opportunities should be organized, how someone new would understand the project within a few seconds, how the website could continue to scale as more editions are published, and how to make it accessible, welcoming, and easy to use.
+
+AI helped me build faster, but every page, feature, piece of content, and design decision went through multiple rounds of refinement before becoming what you see today.
+
+I believe being transparent about how I build is important, so I wanted to include that here.
+
+---
+
 ## Feedback
 
 This is still the first version of the website.
