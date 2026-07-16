@@ -116,4 +116,11 @@ I hope it makes discovering opportunities a little easier.
 
 ---
 
+## Licensing
+
+- **Source code:** Apache License 2.0 (see `LICENSE`)
+- **Content & branding:** See `CONTENT_LICENSE.md`
+
+---
+
 Made with ❤️ by **Hemapriya Kanagala**
