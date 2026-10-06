@@ -108,7 +108,7 @@ I hope it makes discovering opportunities a little easier.
 
 ## Links
 
-🌐 **Website:** https://devopportunityradar.ai.studio
+🌐 **Website:** https://devopportunityradar.com/
 
 📰 **DEV Series:** https://dev.to/hemapriya_kanagala
 
